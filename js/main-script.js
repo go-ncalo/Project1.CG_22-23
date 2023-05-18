@@ -5,6 +5,7 @@
 var camera1, camera2, camera3, camera4, camera5, scene, renderer;
 var geometry, material, mesh;
 var activeCamera;
+const materials = [];
 
 /////////////////////
 /* CREATE SCENE(S) */
@@ -15,36 +16,37 @@ function createScene(){
 
     scene.add(new THREE.AxisHelper(10));
     scene.background = new THREE.Color(0xdcefef);
-    createCube()
-
+    createMaterials();
+    createTorso();
+    
 }
 
 //////////////////////
 /* CREATE CAMERA(S) */
 //////////////////////
-function createCamera(){
+function createCameras(){
     'use strict';
     var width = window.innerWidth;
     var height = window.innerHeight;
     
-    camera1 = new THREE.OrthographicCamera(width / - 200, width / 200, height / 200, height / - 200, 1, 1000 );
-    camera1.position.x = 2;
+    camera1 = new THREE.OrthographicCamera(width / - 100, width / 100, height / 100, height / - 100, -10, 1000 );
+    camera1.position.z = 2;
 
-    camera2 = new THREE.OrthographicCamera(width / - 200, width / 200, height / 200, height / - 200, 1, 1000 );
-    camera2.position.y = 2;
+    camera2 = new THREE.OrthographicCamera(width / - 100, width / 100, height / 100, height / - 100, -10, 1000 );
+    camera2.position.x = 2;
 
-    camera3 = new THREE.OrthographicCamera(width / - 200, width / 200, height / 200, height / - 200, 1, 1000 );
-    camera3.position.z = 2;
+    camera3 = new THREE.OrthographicCamera(width / - 100, width / 100, height / 100, height / - 100, -10, 1000 );
+    camera3.position.y = 2;
 
-    camera4 = new THREE.OrthographicCamera(width / - 200, width / 200, height / 200, height / - 200, 1, 1000 );
+    camera4 = new THREE.OrthographicCamera(width / - 100, width / 100, height / 100, height / - 100, -10, 1000 );
     camera4.position.x = 2;
     camera4.position.y = 2;
     camera4.position.z = 2;
 
     camera5 = new THREE.PerspectiveCamera(70, width / height, 1, 1000);
-    camera5.position.x = 10;
-    camera5.position.y = 10;
-    camera5.position.z = 10;
+    camera5.position.x = 5;
+    camera5.position.y = 5;
+    camera5.position.z = 5;
 
 
     camera1.lookAt(scene.position);
@@ -53,19 +55,67 @@ function createCamera(){
     camera4.lookAt(scene.position);
     camera5.lookAt(scene.position);
 }
-/////////////////////
-/* CREATE LIGHT(S) */
-/////////////////////
 
 ////////////////////////
 /* CREATE OBJECT3D(S) */
 ////////////////////////
-function createCube() {
+
+function createMaterials() {
     'use strict';
-    var geometry = new THREE.BoxGeometry(1, 1, 1);
-    var material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-    var cube = new THREE.Mesh(geometry, material);
-    scene.add(cube);
+    var material = new THREE.MeshBasicMaterial({ color: 0xcfd0d2, wireframe: false });
+    materials.push(material);
+    material = new THREE.MeshBasicMaterial({ color: 0xc44048, wireframe: false });
+    materials.push(material);
+    material = new THREE.MeshBasicMaterial({ color: 0x00000, wireframe: false });
+    materials.push(material);
+    material = new THREE.MeshBasicMaterial({ color: 0xb1b2b3, wireframe: false });
+    materials.push(material);
+}
+function createAbdomen(obj) {
+    'use strict';
+    var geometry = new THREE.BoxGeometry(2, 0.5, 1);
+    var abdomen = new THREE.Mesh(geometry, materials[0]);
+    obj.add(abdomen);
+}
+
+function createThorax(obj) {
+    'use strict';
+    var geometry = new THREE.BoxGeometry(4, 2, 1);
+    var thorax = new THREE.Mesh(geometry, materials[1]);
+    thorax.position.y = 1.25;
+    obj.add(thorax);
+}
+function createWaist(obj) {
+    'use strict';
+    var geometry = new THREE.BoxGeometry(3, 1, 1);
+    var waist = new THREE.Mesh(geometry, materials[3]);
+    waist.position.y = -0.75;
+    obj.add(waist);
+}
+
+function createWheel(obj, x, y, z) {
+    'use strict';
+    var geometry = new THREE.CylinderGeometry(0.5, 0.5, 0.5, 32);
+    var wheel = new THREE.Mesh(geometry, materials[2]);
+    wheel.rotateZ(Math.PI / 2);
+    wheel.position.x = x;
+    wheel.position.y = y;
+    wheel.position.z = z;
+    obj.add(wheel);
+}
+
+function createTorso() {
+    'use strict';
+
+    var torso = new THREE.Object3D();
+
+    createAbdomen(torso);
+    createThorax(torso);
+    createWaist(torso);
+    createWheel(torso, 1.75, -0.75, 0);
+    createWheel(torso, -1.75, -0.75, 0);
+
+    scene.add(torso);
 }
 
 //////////////////////
@@ -112,7 +162,7 @@ function init() {
     document.body.appendChild(renderer.domElement);
 
     createScene();
-    createCamera();
+    createCameras();
     activeCamera = camera1;
 
     render();
@@ -160,12 +210,9 @@ function onKeyDown(e) {
             activeCamera = camera5;
             break;
         case 54: //6
-            // TODO: Change to more efficient way
-            scene.traverse(function (node) {
-                if (node instanceof THREE.Mesh) {
-                    node.material.wireframe = !node.material.wireframe;
-                }
-            });
+            for (let m in materials) {
+                materials[m].wireframe = !materials[m].wireframe;
+            }
             break;
     }
 
