@@ -6,7 +6,7 @@ var camera1, camera2, camera3, camera4, camera5, scene, renderer;
 var geometry, material, mesh;
 var activeCamera;
 
-var head, armLeft, armRight, lowerBody, feet;
+var head, armLeft, armRight, lowerBody, feet, trailer;
 
 const materials = [];
 var keyMap = {};
@@ -21,7 +21,8 @@ function createScene() {
     scene.add(new THREE.AxisHelper(10));
     scene.background = new THREE.Color(0xdcefef);
     createMaterials();
-    createRobot(0, 1, 0);
+    createRobot(0, 1, 3);
+    createTrailer(0, 3, -9);
 
 }
 
@@ -33,24 +34,29 @@ function createCameras() {
     var width = window.innerWidth;
     var height = window.innerHeight;
 
-    camera1 = new THREE.OrthographicCamera(width / - 80, width / 80, height / 80, height / - 80, -10, 1000);
+    camera1 = new THREE.OrthographicCamera(width / - 70, width / 70, height / 70, height / - 70, -10, 1000);
     camera1.position.z = 2;
+    camera1.lookAt(scene.position);
 
-    camera2 = new THREE.OrthographicCamera(width / - 80, width / 80, height / 80, height / - 80, -10, 1000);
+    camera2 = new THREE.OrthographicCamera(width / - 70, width / 70, height / 70, height / - 70, -10, 1000);
     camera2.position.x = 2;
+    camera2.lookAt(scene.position);
 
-    camera3 = new THREE.OrthographicCamera(width / - 80, width / 80, height / 80, height / - 80, -10, 1000);
+    camera3 = new THREE.OrthographicCamera(width / - 70, width / 70, height / 70, height / - 70, -10, 1000);
     camera3.position.y = 2;
+    camera3.lookAt(scene.position);
 
-    camera4 = new THREE.OrthographicCamera(width / - 80, width / 80, height / 80, height / - 80, -10, 1000);
+    camera4 = new THREE.OrthographicCamera(width / - 70, width / 70, height / 70, height / - 70, -10, 1000);
     camera4.position.x = 2;
     camera4.position.y = 2;
     camera4.position.z = 2;
+    camera4.lookAt(scene.position);
 
-    camera5 = new THREE.PerspectiveCamera(100, width / height, 1, 1000);
-    camera5.position.x = -2.5;
-    camera5.position.y = 2.5;
+    camera5 = new THREE.PerspectiveCamera(90, width / height, 1, 1000);
+    camera5.position.x = 7;
+    camera5.position.y = 5;
     camera5.position.z = 7;
+    camera5.lookAt(scene.position);
 
 
     camera1.lookAt(scene.position);
@@ -180,15 +186,15 @@ function createLowerBody(obj, x, y, z) {
 
     lowerBody = new THREE.Object3D();
 
-    createThigh(lowerBody, 0.75, -.5, -0.25);
-    createThigh(lowerBody, -0.75, -.5, -0.25);
-    createLeg(lowerBody, 1, -2.75, 0);
-    createLeg(lowerBody, -1, -2.75, 0);
-    createWheel(lowerBody, 1.75, -2, 0);
-    createWheel(lowerBody, 1.75, -3.5, 0);
-    createWheel(lowerBody, -1.75, -2, 0);
-    createWheel(lowerBody, -1.75, -3.5, 0);
-    createFeet(lowerBody, 0, -4.5, 0);
+    createThigh(lowerBody, 0.75, -1, -0.25);
+    createThigh(lowerBody, -0.75, -1, -0.25);
+    createLeg(lowerBody, 1, -3.25, 0);
+    createLeg(lowerBody, -1, -3.25, 0);
+    createWheel(lowerBody, 1.75, -2.5, 0);
+    createWheel(lowerBody, 1.75, -4, 0);
+    createWheel(lowerBody, -1.75, -2.5, 0);
+    createWheel(lowerBody, -1.75, -4, 0);
+    createFeet(lowerBody, 0, -5, 0);
 
     lowerBody.position.set(x, y, z);
     obj.add(lowerBody);
@@ -301,7 +307,7 @@ function createRobot(x, y, z) {
     var robot = new THREE.Object3D();
 
     createTorso(robot);
-    createLowerBody(robot, 0, -1.5, 0);
+    createLowerBody(robot, 0, -1, 0);
     armRight = createArmMember(robot, 2.5);
     armLeft =  createArmMember(robot, -2.5);
     createHead(robot, 0, 2.5, 0);
@@ -311,6 +317,43 @@ function createRobot(x, y, z) {
     robot.position.x = x;
     robot.position.y = y;
     robot.position.z = z;
+}
+
+function createContainer(obj, x, y, z) {
+    'use strict';
+    var geometry = new THREE.BoxGeometry(4, 5, 9);
+    var container = new THREE.Mesh(geometry, materials[3]);
+
+    container.position.set(x, y, z);
+    obj.add(container);
+}
+
+function createHook(obj, x, y, z) {
+    'use strict';
+    var geometry = new THREE.BoxGeometry(1, 0.5, 1);
+    var hook = new THREE.Mesh(geometry, materials[0]);
+
+    hook.position.set(x, y, z);
+    obj.add(hook);
+}
+
+function createTrailer(x, y, z) {
+    'use strict';
+
+    trailer = new THREE.Object3D();
+
+    createContainer(trailer, 0, 0, 0);
+    createWheel(trailer, 1.75, -3, -3.5);
+    createWheel(trailer, 1.75, -3, -2.5);
+    createWheel(trailer, -1.75, -3, -3.5);
+    createWheel(trailer, -1.75, -3, -2.5);
+    createHook(trailer, 0, -2.25, 5)
+
+    scene.add(trailer);
+
+    trailer.position.x = x;
+    trailer.position.y = y;
+    trailer.position.z = z;
 }
 
 //////////////////////
@@ -367,6 +410,23 @@ function update() {
     if (keyMap[81] || keyMap[113]) { // Q
         feet.rotation.x = THREE.MathUtils.clamp(feet.rotation.x + 0.05, 0, Math.PI/2);
     }
+
+    if (keyMap[37]) { // LEFT
+        trailer.position.x -= 0.05;
+    }
+
+    if (keyMap[39]) { // RIGHT
+        trailer.position.x += 0.05;
+    }
+
+    if (keyMap[38]) { // UP
+        trailer.position.z -= 0.05;
+    }
+
+    if (keyMap[40]) { // DOWN
+        trailer.position.z += 0.05;
+    }
+
 }
 
 /////////////
@@ -396,7 +456,7 @@ function init() {
     render();
 
     window.addEventListener("keydown", onKeyDown);
-    // window.addEventListener("resize", onResize);
+    window.addEventListener("resize", onResize);
     window.addEventListener("keyup", onKeyUp);
 }
 
@@ -415,6 +475,13 @@ function animate() {
 ////////////////////////////
 function onResize() {
     'use strict';
+
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    if (window.innerHeight > 0 && window.innerWidth > 0) {
+        activeCamera.aspect = window.innerWidth / window.innerHeight;
+        activeCamera.updateProjectionMatrix();
+    }
 
 }
 
@@ -446,7 +513,6 @@ function onKeyDown(e) {
             }
             break;
     }
-
 }
 
 ///////////////////////
