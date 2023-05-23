@@ -8,8 +8,15 @@ var activeCamera;
 
 var head, armLeft, armRight, lowerBody, feet, trailer;
 
+const clock = new THREE.Clock();
 const materials = [];
-var keyMap = {};
+var k = {};
+
+const
+    Q = 81, W = 87, E = 69, R = 82,
+    S = 83, A = 65, D = 68, F = 70, 
+    LEFT = 37, RIGHT = 39, UP = 38, DOWN = 40,
+    N1 = 49, N2 = 50, N3 = 51, N4 = 52, N5 = 53, N6 = 54;
 
 /////////////////////
 /* CREATE SCENE(S) */
@@ -36,28 +43,22 @@ function createCameras() {
 
     camera1 = new THREE.OrthographicCamera(width / - 70, width / 70, height / 70, height / - 70, -10, 1000);
     camera1.position.z = 2;
-    camera1.lookAt(scene.position);
 
     camera2 = new THREE.OrthographicCamera(width / - 70, width / 70, height / 70, height / - 70, -10, 1000);
     camera2.position.x = 2;
-    camera2.lookAt(scene.position);
 
     camera3 = new THREE.OrthographicCamera(width / - 70, width / 70, height / 70, height / - 70, -10, 1000);
     camera3.position.y = 2;
-    camera3.lookAt(scene.position);
 
     camera4 = new THREE.OrthographicCamera(width / - 70, width / 70, height / 70, height / - 70, -10, 1000);
     camera4.position.x = 2;
     camera4.position.y = 2;
     camera4.position.z = 2;
-    camera4.lookAt(scene.position);
 
     camera5 = new THREE.PerspectiveCamera(90, width / height, 1, 1000);
     camera5.position.x = 7;
     camera5.position.y = 5;
     camera5.position.z = 7;
-    camera5.lookAt(scene.position);
-
 
     camera1.lookAt(scene.position);
     camera2.lookAt(scene.position);
@@ -377,54 +378,57 @@ function handleCollisions() {
 ////////////
 function update() {
     'use strict';
-    if (keyMap[69] || keyMap[101]) { // E
-        armLeft.position.x = THREE.MathUtils.clamp(armLeft.position.x + 0.05, -2.5, -1.5);
-        armRight.position.x = THREE.MathUtils.clamp(armRight.position.x - 0.05, 1.5, 2.5);
+
+    let delta = clock.getDelta();
+
+    if (k[E]) { // E
+        armLeft.position.x = THREE.MathUtils.clamp(armLeft.position.x + 2 * delta, -2.5, -1.5);
+        armRight.position.x = THREE.MathUtils.clamp(armRight.position.x - 2 * delta, 1.5, 2.5);
     }
 
-    if (keyMap[68] || keyMap[100]) { // D
-        armLeft.position.x = THREE.MathUtils.clamp(armLeft.position.x - 0.05, -2.5, -1.5);
-        armRight.position.x = THREE.MathUtils.clamp(armRight.position.x + 0.05, 1.5, 2.5);
+    if (k[D]) { // D
+        armLeft.position.x = THREE.MathUtils.clamp(armLeft.position.x - 2 * delta, -2.5, -1.5);
+        armRight.position.x = THREE.MathUtils.clamp(armRight.position.x + 2 * delta, 1.5, 2.5);
     }
 
-    if (keyMap[70] || keyMap[102]) { // F
-        head.rotation.x = THREE.MathUtils.clamp(head.rotation.x + 0.05, -Math.PI, 0);
+    if (k[F]) { // F
+        head.rotation.x = THREE.MathUtils.clamp(head.rotation.x + 4 * delta, -Math.PI, 0);
     }
 
-    if (keyMap[82] || keyMap[114]) { // R
-        head.rotation.x = THREE.MathUtils.clamp(head.rotation.x - 0.05, -Math.PI, 0);
+    if (k[R]) { // R
+        head.rotation.x = THREE.MathUtils.clamp(head.rotation.x - 4 * delta, -Math.PI, 0);
     }
 
-    if (keyMap[87] || keyMap[119]) { // W
-        lowerBody.rotation.x = THREE.MathUtils.clamp(lowerBody.rotation.x + 0.05, 0, Math.PI/2);
+    if (k[W]) { // W
+        lowerBody.rotation.x = THREE.MathUtils.clamp(lowerBody.rotation.x + 2 * delta, 0, Math.PI/2);
     }
 
-    if (keyMap[83] || keyMap[115]) { // S
-        lowerBody.rotation.x = THREE.MathUtils.clamp(lowerBody.rotation.x - 0.05, 0, Math.PI/2);
+    if (k[S]) { // S
+        lowerBody.rotation.x = THREE.MathUtils.clamp(lowerBody.rotation.x - 2 * delta, 0, Math.PI/2);
     }
 
-    if (keyMap[65] || keyMap[97]) { // A
-        feet.rotation.x = THREE.MathUtils.clamp(feet.rotation.x - 0.05, 0, Math.PI/2);
+    if (k[A]) { // A
+        feet.rotation.x = THREE.MathUtils.clamp(feet.rotation.x - 2 * delta, 0, Math.PI/2);
     }
 
-    if (keyMap[81] || keyMap[113]) { // Q
-        feet.rotation.x = THREE.MathUtils.clamp(feet.rotation.x + 0.05, 0, Math.PI/2);
+    if (k[Q]) { // Q
+        feet.rotation.x = THREE.MathUtils.clamp(feet.rotation.x + 2 * delta, 0, Math.PI/2);
     }
 
-    if (keyMap[37]) { // LEFT
-        trailer.position.x -= 0.05;
+    if (k[LEFT]) { // LEFT
+        trailer.position.x -= 3 * delta;
     }
 
-    if (keyMap[39]) { // RIGHT
-        trailer.position.x += 0.05;
+    if (k[RIGHT]) { // RIGHT
+        trailer.position.x += 3 * delta;
     }
 
-    if (keyMap[38]) { // UP
-        trailer.position.z -= 0.05;
+    if (k[UP]) { // UP
+        trailer.position.z -= 3 * delta;
     }
 
-    if (keyMap[40]) { // DOWN
-        trailer.position.z += 0.05;
+    if (k[DOWN]) { // DOWN
+        trailer.position.z += 3 * delta;
     }
 
 }
@@ -490,30 +494,32 @@ function onResize() {
 ///////////////////////
 function onKeyDown(e) {
     'use strict';
-    keyMap[e.keyCode] = true;
-    switch (e.keyCode) {
-        case 49: //1
-            activeCamera = camera1;
-            break;
-        case 50: //2
-            activeCamera = camera2;
-            break;
-        case 51: //3
-            activeCamera = camera3;
-            break;
-        case 52: //4
-            activeCamera = camera4;
-            break;
-        case 53: //5
-            activeCamera = camera5;
-            break;
-        case 54: //6
-            for (let m in materials) {
-                materials[m].wireframe = !materials[m].wireframe;
-            }
-            break;
-    }
+    if (!k[e.keyCode])
+        switch (e.keyCode) {
+            case N1: //1
+                activeCamera = camera1;
+                break;
+            case N2: //2
+                activeCamera = camera2;
+                break;
+            case N3: //3
+                activeCamera = camera3;
+                break;
+            case N4: //4
+                activeCamera = camera4;
+                break;
+            case N5: //5
+                activeCamera = camera5;
+                break;
+            case N6: //6
+                for (let m in materials) {
+                    materials[m].wireframe = !materials[m].wireframe;
+                }
+                break;
+        }
+    k[e.keyCode] = true;
 }
+
 
 ///////////////////////
 /* KEY UP CALLBACK */
@@ -521,5 +527,5 @@ function onKeyDown(e) {
 
 function onKeyUp(e) {
     'use strict';
-    keyMap[e.keyCode] = false;
+    k[e.keyCode] = false;
 }
