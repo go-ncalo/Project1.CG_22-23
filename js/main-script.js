@@ -6,9 +6,10 @@ var camera1, camera2, camera3, camera4, camera5, scene, renderer;
 var geometry, material, mesh;
 var activeCamera;
 
-var head, armLeft, armRight, lowerBody;
+var head, armLeft, armRight, lowerBody, feet;
 
 const materials = [];
+var keyMap = {};
 
 /////////////////////
 /* CREATE SCENE(S) */
@@ -20,7 +21,7 @@ function createScene() {
     scene.add(new THREE.AxisHelper(10));
     scene.background = new THREE.Color(0xdcefef);
     createMaterials();
-    createRobot(0, 0, 0);
+    createRobot(0, 1, 0);
 
 }
 
@@ -162,22 +163,34 @@ function createFoot(obj, x, y, z) {
     obj.add(foot);
 }
 
-function createLowerBody(obj) {
+function createFeet(obj, x, y, z) {
+    'use strict';
+
+    feet = new THREE.Object3D();
+
+    createFoot(feet, 1, -0.25, 0.25);
+    createFoot(feet, -1, -0.25, 0.25);
+
+    feet.position.set(x, y, z);
+    obj.add(feet);
+}
+
+function createLowerBody(obj, x, y, z) {
     'use strict';
 
     lowerBody = new THREE.Object3D();
 
-    createThigh(lowerBody, 0.75, -2, -0.25);
-    createThigh(lowerBody, -0.75, -2, -0.25);
-    createLeg(lowerBody, 1, -4.25, 0);
-    createLeg(lowerBody, -1, -4.25, 0);
+    createThigh(lowerBody, 0.75, -.5, -0.25);
+    createThigh(lowerBody, -0.75, -.5, -0.25);
+    createLeg(lowerBody, 1, -2.75, 0);
+    createLeg(lowerBody, -1, -2.75, 0);
+    createWheel(lowerBody, 1.75, -2, 0);
     createWheel(lowerBody, 1.75, -3.5, 0);
-    createWheel(lowerBody, 1.75, -5, 0);
+    createWheel(lowerBody, -1.75, -2, 0);
     createWheel(lowerBody, -1.75, -3.5, 0);
-    createWheel(lowerBody, -1.75, -5, 0);
-    createFoot(lowerBody, 1, -6.25, 0.25);
-    createFoot(lowerBody, -1, -6.25, 0.25);
+    createFeet(lowerBody, 0, -4.5, 0);
 
+    lowerBody.position.set(x, y, z);
     obj.add(lowerBody);
 }
 
@@ -288,7 +301,7 @@ function createRobot(x, y, z) {
     var robot = new THREE.Object3D();
 
     createTorso(robot);
-    createLowerBody(robot);
+    createLowerBody(robot, 0, -1.5, 0);
     armRight = createArmMember(robot, 2.5);
     armLeft =  createArmMember(robot, -2.5);
     createHead(robot, 0, 2.5, 0);
@@ -321,7 +334,39 @@ function handleCollisions() {
 ////////////
 function update() {
     'use strict';
+    if (keyMap[69] || keyMap[101]) { // E
+        armLeft.position.x = THREE.MathUtils.clamp(armLeft.position.x + 0.05, -2.5, -1.5);
+        armRight.position.x = THREE.MathUtils.clamp(armRight.position.x - 0.05, 1.5, 2.5);
+    }
 
+    if (keyMap[68] || keyMap[100]) { // D
+        armLeft.position.x = THREE.MathUtils.clamp(armLeft.position.x - 0.05, -2.5, -1.5);
+        armRight.position.x = THREE.MathUtils.clamp(armRight.position.x + 0.05, 1.5, 2.5);
+    }
+
+    if (keyMap[70] || keyMap[102]) { // F
+        head.rotation.x = THREE.MathUtils.clamp(head.rotation.x + 0.05, -Math.PI, 0);
+    }
+
+    if (keyMap[82] || keyMap[114]) { // R
+        head.rotation.x = THREE.MathUtils.clamp(head.rotation.x - 0.05, -Math.PI, 0);
+    }
+
+    if (keyMap[87] || keyMap[119]) { // W
+        lowerBody.rotation.x = THREE.MathUtils.clamp(lowerBody.rotation.x + 0.05, 0, Math.PI/2);
+    }
+
+    if (keyMap[83] || keyMap[115]) { // S
+        lowerBody.rotation.x = THREE.MathUtils.clamp(lowerBody.rotation.x - 0.05, 0, Math.PI/2);
+    }
+
+    if (keyMap[65] || keyMap[97]) { // A
+        feet.rotation.x = THREE.MathUtils.clamp(feet.rotation.x - 0.05, 0, Math.PI/2);
+    }
+
+    if (keyMap[81] || keyMap[113]) { // Q
+        feet.rotation.x = THREE.MathUtils.clamp(feet.rotation.x + 0.05, 0, Math.PI/2);
+    }
 }
 
 /////////////
@@ -330,6 +375,7 @@ function update() {
 function render() {
     'use strict';
     renderer.render(scene, activeCamera);
+    update();
 }
 
 ////////////////////////////////
@@ -377,6 +423,7 @@ function onResize() {
 ///////////////////////
 function onKeyDown(e) {
     'use strict';
+    keyMap[e.keyCode] = true;
     switch (e.keyCode) {
         case 49: //1
             activeCamera = camera1;
@@ -398,33 +445,6 @@ function onKeyDown(e) {
                 materials[m].wireframe = !materials[m].wireframe;
             }
             break;
-        case 69: //E
-        case 101: //e
-            armLeft.position.x = THREE.MathUtils.clamp(armLeft.position.x + 0.1, -2.5, -1.5);
-            armRight.position.x = THREE.MathUtils.clamp(armRight.position.x - 0.1, 1.5, 2.5);
-            break;
-        case 68: //D
-        case 100: //d
-            armLeft.position.x = THREE.MathUtils.clamp(armLeft.position.x - 0.1, -2.5, -1.5);
-            armRight.position.x = THREE.MathUtils.clamp(armRight.position.x + 0.1, 1.5, 2.5);
-            break;
-        case 70: //F
-        case 102: //f
-            head.rotation.x = THREE.MathUtils.clamp(head.rotation.x + 0.1, -Math.PI, 0);
-            break;
-        case 82: //R
-        case 114: //r
-            head.rotation.x = THREE.MathUtils.clamp(head.rotation.x - 0.1, -Math.PI, 0);
-            break;
-        
-        case 87: //W
-        case 119: //w
-            lowerBody.rotation.x = THREE.MathUtils.clamp(lowerBody.rotation.x + 0.1, 0, Math.PI/2);
-            break;
-        case 83: //S
-        case 115: //s
-            lowerBody.rotation.x = THREE.MathUtils.clamp(lowerBody.rotation.x - 0.1, 0, Math.PI/2);
-            break;
     }
 
 }
@@ -434,17 +454,6 @@ function onKeyDown(e) {
 ///////////////////////
 
 function onKeyUp(e) {
-    /*
     'use strict';
-    switch (e.keyCode) {
-        case 70: //F
-        case 102: //f
-            head.userData.animation = !head.userData.animation;
-            break;
-        case 82: //R
-        case 114: //r
-            head.userData.animation = !head.userData.animation;
-            head.userData.direction *= -1;
-            break;
-    } */
+    keyMap[e.keyCode] = false;
 }
