@@ -6,8 +6,11 @@ var camera1, camera2, camera3, camera4, camera5, scene, renderer;
 var geometry, material, mesh;
 var activeCamera;
 
-var head, armLeft, armRight, lowerBody, feet, trailer;
+var head, armLeft, armRight, lowerBody, feet, robot, trailer;
+var collision = false;
+var AABBMinTruck, AABBMaxTruck, AABBMinTrailer, AABBMaxTrailer;
 
+var delta;
 const clock = new THREE.Clock();
 const materials = [];
 var k = {};
@@ -302,10 +305,19 @@ function createHead(obj, x, y, z) {
     obj.add(head);
 }
 
+function createCube(obj, x, y, z) {
+    'use strict';
+    var geometry = new THREE.BoxGeometry(1, 1, 1);
+    var cube = new THREE.Mesh(geometry, materials[0]);
+
+    cube.position.set(x, y, z);
+    obj.add(cube);
+}
+
 function createRobot(x, y, z) {
     'use strict';
 
-    var robot = new THREE.Object3D();
+    robot = new THREE.Object3D();
 
     createTorso(robot);
     createLowerBody(robot, 0, -1, 0);
@@ -348,7 +360,7 @@ function createTrailer(x, y, z) {
     createWheel(trailer, 1.75, -3, -2.5);
     createWheel(trailer, -1.75, -3, -3.5);
     createWheel(trailer, -1.75, -3, -2.5);
-    createHook(trailer, 0, -2.25, 5)
+    createHook(trailer, 0, -2.25, 5);
 
     scene.add(trailer);
 
@@ -357,11 +369,30 @@ function createTrailer(x, y, z) {
     trailer.position.z = z;
 }
 
+function isTruckForm() {
+    'use strict';
+    return armRight.position.x === 1.5 && armLeft.position.x === -1.5 &&
+        head.rotation.x === -Math.PI && lowerBody.rotation.x === Math.PI/2 &&
+        feet.rotation.x === Math.PI/2
+}
+
+function calculateBoundingBoxes() {
+    'use strict';
+    AABBMaxTruck = new THREE.Vector3(robot.position.x + 2.5, robot.position.y + 3, robot.position.z + 0.5);
+    AABBMinTruck = new THREE.Vector3(robot.position.x - 2.5, robot.position.y - 1.5, robot.position.z - 6);
+
+    AABBMaxTrailer = new THREE.Vector3(trailer.position.x + 2, trailer.position.y + 2.5, trailer.position.z + 5.5);
+    AABBMinTrailer = new THREE.Vector3(trailer.position.x - 2, trailer.position.y - 2.5, trailer.position.z - 4.5);
+}
+
 //////////////////////
 /* CHECK COLLISIONS */
 //////////////////////
 function checkCollisions() {
     'use strict';
+    return AABBMinTruck.x <= AABBMaxTrailer.x && AABBMaxTruck.x >= AABBMinTrailer.x
+        && AABBMinTruck.y <= AABBMaxTrailer.y && AABBMaxTruck.y >= AABBMinTrailer.y
+        && AABBMinTruck.z <= AABBMaxTrailer.z && AABBMaxTruck.z >= AABBMinTrailer.z;
 
 }
 
@@ -370,7 +401,17 @@ function checkCollisions() {
 ///////////////////////
 function handleCollisions() {
     'use strict';
-
+    let attachment = new THREE.Vector3(0, 3, -7);
+    if (collision && isTruckForm()) {
+        if (attachment.distanceTo(trailer.position) > 0.1) {
+            trailer.position.x < attachment.x ? trailer.position.x += 1 * delta : trailer.position.x -= 1 * delta;
+            trailer.position.z < attachment.z ? trailer.position.z += 1 * delta : trailer.position.z -= 1 * delta;
+        } else {
+            trailer.position.x = attachment.x;
+            trailer.position.z = attachment.z;
+            collision = false;
+        }
+    }
 }
 
 ////////////
@@ -378,9 +419,13 @@ function handleCollisions() {
 ////////////
 function update() {
     'use strict';
+    console.log(collision);
+    console.log(isTruckForm());
 
-    let delta = clock.getDelta();
-
+    if (collision && isTruckForm()) {
+        return;
+    }
+    
     if (k[E]) { // E
         armLeft.position.x = THREE.MathUtils.clamp(armLeft.position.x + 2 * delta, -2.5, -1.5);
         armRight.position.x = THREE.MathUtils.clamp(armRight.position.x - 2 * delta, 1.5, 2.5);
@@ -415,21 +460,24 @@ function update() {
         feet.rotation.x = THREE.MathUtils.clamp(feet.rotation.x + 2 * delta, 0, Math.PI/2);
     }
 
+    let vector = new THREE.Vector3(0,0,0);
     if (k[LEFT]) { // LEFT
-        trailer.position.x -= 3 * delta;
+        vector.x -= 1;
     }
 
     if (k[RIGHT]) { // RIGHT
-        trailer.position.x += 3 * delta;
+        vector.x += 1;
     }
 
     if (k[UP]) { // UP
-        trailer.position.z -= 3 * delta;
+        vector.z -= 1;
     }
 
     if (k[DOWN]) { // DOWN
-        trailer.position.z += 3 * delta;
+        vector.z += 1;
     }
+    vector.normalize();
+    trailer.position.add(vector.multiplyScalar(3  * delta));
 
 }
 
@@ -439,7 +487,6 @@ function update() {
 function render() {
     'use strict';
     renderer.render(scene, activeCamera);
-    update();
 }
 
 ////////////////////////////////
@@ -452,12 +499,11 @@ function init() {
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
-
+    
     createScene();
     createCameras();
-    activeCamera = camera1;
 
-    render();
+    activeCamera = camera1;
 
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("resize", onResize);
@@ -469,7 +515,16 @@ function init() {
 /////////////////////
 function animate() {
     'use strict';
+    delta = clock.getDelta();
+    // collision here
+    calculateBoundingBoxes();
+    if (!collision) {
+        collision = checkCollisions();
+    } else {
+        handleCollisions();
+    }
 
+    update();
     render();
     requestAnimationFrame(animate);
 }
