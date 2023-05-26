@@ -181,7 +181,7 @@ function createFeet(obj, x, y, z) {
     createFoot(feet, 1, -0.25, 0.25);
     createFoot(feet, -1, -0.25, 0.25);
 
-    feet.position.set(x, y, z);
+    feet.position.set(x, y, z - 0.01);
     obj.add(feet);
 }
 
@@ -301,7 +301,7 @@ function createHead(obj, x, y, z) {
     createEye(head, -0.375, 0.7, 0.55);
     head.scale.set(0.9, 0.9, 0.9);
     
-    head.position.set(x, y, z);
+    head.position.set(x, y - 0.01, z);
     obj.add(head);
 }
 
