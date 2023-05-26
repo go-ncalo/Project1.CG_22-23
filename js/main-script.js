@@ -28,7 +28,6 @@ function createScene() {
     'use strict';
     scene = new THREE.Scene();
 
-    scene.add(new THREE.AxisHelper(10));
     scene.background = new THREE.Color(0xdcefef);
     createMaterials();
     createRobot(0, 1, 3);
@@ -422,6 +421,12 @@ function update() {
     console.log(collision);
     console.log(isTruckForm());
 
+    calculateBoundingBoxes();
+    collision = checkCollisions();
+    if (collision) {
+        handleCollisions();
+    }
+
     if (collision && isTruckForm()) {
         return;
     }
@@ -517,13 +522,6 @@ function animate() {
     'use strict';
     delta = clock.getDelta();
     // collision here
-    calculateBoundingBoxes();
-    if (!collision) {
-        collision = checkCollisions();
-    } else {
-        handleCollisions();
-    }
-
     update();
     render();
     requestAnimationFrame(animate);
