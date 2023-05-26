@@ -8,6 +8,7 @@ var activeCamera;
 
 var head, armLeft, armRight, lowerBody, feet, robot, trailer;
 var collision = false;
+var collisionFinished = false;
 var AABBMinTruck, AABBMaxTruck, AABBMinTrailer, AABBMaxTrailer;
 
 var delta;
@@ -400,16 +401,20 @@ function checkCollisions() {
 ///////////////////////
 function handleCollisions() {
     'use strict';
-    let attachment = new THREE.Vector3(0, 3, -7);
-    if (collision && isTruckForm()) {
-        if (attachment.distanceTo(trailer.position) > 0.1) {
-            trailer.position.x < attachment.x ? trailer.position.x += 1 * delta : trailer.position.x -= 1 * delta;
-            trailer.position.z < attachment.z ? trailer.position.z += 1 * delta : trailer.position.z -= 1 * delta;
-        } else {
-            trailer.position.x = attachment.x;
-            trailer.position.z = attachment.z;
-            collision = false;
-        }
+    let attachment = new THREE.Vector3(0, 3, -6);
+
+    if (collisionFinished) { 
+        collision = false;
+        return;
+    }
+    
+    if (attachment.distanceTo(trailer.position) > 0.1) {
+        trailer.position.x < attachment.x ? trailer.position.x += 1 * delta : trailer.position.x -= 1 * delta;
+        trailer.position.z < attachment.z ? trailer.position.z += 1 * delta : trailer.position.z -= 1 * delta;
+    } else {
+        trailer.position.x = attachment.x;
+        trailer.position.z = attachment.z;
+        collisionFinished = true;
     }
 }
 
@@ -420,12 +425,6 @@ function update() {
     'use strict';
     console.log(collision);
     console.log(isTruckForm());
-
-    calculateBoundingBoxes();
-    collision = checkCollisions();
-    if (collision) {
-        handleCollisions();
-    }
 
     if (collision && isTruckForm()) {
         return;
@@ -522,6 +521,15 @@ function animate() {
     'use strict';
     delta = clock.getDelta();
     // collision here
+    calculateBoundingBoxes();
+    if (isTruckForm()) {
+        collision = checkCollisions();
+        if (collision) {
+            handleCollisions();
+        } else {
+            collisionFinished = false;
+        }
+    }
     update();
     render();
     requestAnimationFrame(animate);
